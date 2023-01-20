@@ -1,0 +1,19 @@
+#!/bin/sh
+hosts=$(sinfo --noheader -p gpu --format="%n")
+
+memc="\e[95m"
+cpuc="\e[96m"
+normc="\e[00m"
+python_cmd=$(cat << EOF
+import os;
+d=[l.split(',') for l in os.sys.stdin.read().split('\n')];
+print(f'[{len(d)-1}] {d[0][0]:21s} ($memc{int(d[0][1])//1024} GB$normc)  '+''.join([f'[$cpuc{l[2]:>4}%$normc $memc{l[3]:>4}%$normc]' for l in d[:-1]]))
+EOF
+)
+for host in ${hosts[@]}; do
+        echo -e "$(ssh $host nvidia-smi --query-gpu=name,memory.total,utilization.gpu,utilization.memory --format=csv,noheader,nounits | python -c "print('$host',end=': ');$python_cmd")" &
+
+done
+wait
+
+
