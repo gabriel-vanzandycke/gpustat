@@ -1,17 +1,23 @@
 #!/bin/sh
 hosts=$(sinfo --noheader -p gpu --format="%n")
 
-memc="\e[38;5;5m"
-cpuc="\e[38;5;4m"
-normc="\e[0m"
-used="\e[38;5;1m"
+memc="\e[35m"
+cpuc="\e[34m"
+bg_color="\e[2m"
+bg_default="\e[22m"
+fg_default="\e[39m"
 python_cmd=$(cat << EOF
 import os
 data = [[x.strip() for x in l.split(',')] for l in os.sys.stdin.read().split('\n')[:-1]]
 gpus = [l for l in data if len(l)==5]
 processes = [l[0] for l in data if len(l)==1]
-color = lambda l: '$used' if l[-1] in processes else '$normc'
-print(f'[{len(gpus)-1}] {gpus[0][0]:21s} ($memc{int(gpus[0][1])//1024} GB$normc)  '+''.join([f'{color(l)}[$cpuc{l[2]:>4}%$normc $memc{l[3]:>4}%{color(l)}]$normc' for l in gpus]))
+TXT=0
+CPU=1
+MEM=2
+colors = {True: ['\e[2m'       , '\e[2;49;33m'      , '\e[2;49;36m'      ],
+         False: ['\e[22m\e[39m', '\e[22m\e[0;49;33m', '\e[22m\e[0;49;36m']}
+color = lambda i, t: colors[i in processes][t]
+print(f'[{len(gpus)-1}] {gpus[0][0]:21s} ({color(False,MEM)}{int(gpus[0][1])//1024} GB{color(False,TXT)})  '+''.join([f'{color(l[-1],TXT)}[{color(l[-1],CPU)}{l[2]:>4}%{color(l[-1],MEM)}{l[3]:>4}%{color(l[-1],TXT)}]{color(False,TXT)}' for l in gpus]))
 EOF
 )
 
