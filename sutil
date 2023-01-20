@@ -1,18 +1,25 @@
 #!/bin/sh
 hosts=$(sinfo --noheader -p gpu --format="%n")
 
-memc="\e[95m"
-cpuc="\e[96m"
-normc="\e[00m"
+memc="\e[0;;95m"
+cpuc="\e[0;;96m"
+normc="\e[0;;00m"
+used="\e[0;49;91m"
 python_cmd=$(cat << EOF
-import os;
-d=[l.split(',') for l in os.sys.stdin.read().split('\n')];
-print(f'[{len(d)-1}] {d[0][0]:21s} ($memc{int(d[0][1])//1024} GB$normc)  '+''.join([f'[$cpuc{l[2]:>4}%$normc $memc{l[3]:>4}%$normc]' for l in d[:-1]]))
+import os
+data = [[x.strip() for x in l.split(',')] for l in os.sys.stdin.read().split('\n')[:-1]]
+gpus = [l for l in data if len(l)==5]
+processes = [l[0] for l in data if len(l)==1]
+color = lambda l: '$used' if l[-1] in processes else '$normc'
+print(f'[{len(gpus)-1}] {gpus[0][0]:21s} ($memc{int(gpus[0][1])//1024} GB$normc)  '+''.join([f'{color(l)}[$cpuc{l[2]:>4}%$normc $memc{l[3]:>4}%{color(l)}]$normc' for l in gpus]))
 EOF
 )
-for host in ${hosts[@]}; do
-        echo -e "$(ssh $host nvidia-smi --query-gpu=name,memory.total,utilization.gpu,utilization.memory --format=csv,noheader,nounits | python -c "print('$host',end=': ');$python_cmd")" &
 
+nvidia_gpu_query="nvidia-smi --query-gpu=name,memory.total,utilization.gpu,utilization.memory,gpu_uuid --format=csv,noheader,nounits"
+nvidia_process_query="nvidia-smi --query-compute-apps=gpu_uuid --format=csv,noheader,nounits"
+
+for host in ${hosts[@]}; do
+        echo -e "$(ssh $host \\"${nvidia_gpu_query} && ${nvidia_process_query}\\" | python -c "print('$host',end=': '); $python_cmd")" &
 done
 wait
 
