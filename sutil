@@ -1,10 +1,10 @@
 #!/bin/sh
 hosts=$(sinfo --noheader -p gpu --format="%n")
 
-memc="\e[0;;95m"
-cpuc="\e[0;;96m"
-normc="\e[0;;00m"
-used="\e[0;49;91m"
+memc="\e[38;5;5m"
+cpuc="\e[38;5;4m"
+normc="\e[0m"
+used="\e[38;5;1m"
 python_cmd=$(cat << EOF
 import os
 data = [[x.strip() for x in l.split(',')] for l in os.sys.stdin.read().split('\n')[:-1]]
