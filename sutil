@@ -17,7 +17,7 @@ MEM=2
 colors = {True: ['\e[2m'       , '\e[2;49;33m'      , '\e[2;49;36m'      ],
          False: ['\e[22m\e[39m', '\e[22m\e[0;49;33m', '\e[22m\e[0;49;36m']}
 color = lambda i, t: colors[i in processes][t]
-print(f'[{len(gpus)-1}] {gpus[0][0]:21s} ({color(False,MEM)}{int(gpus[0][1])//1024} GB{color(False,TXT)})  '+''.join([f'{color(l[-1],TXT)}[{color(l[-1],CPU)}{l[2]:>4}%{color(l[-1],MEM)}{l[3]:>4}%{color(l[-1],TXT)}]{color(False,TXT)}' for l in gpus]))
+print(f'[{len(gpus)}] {gpus[0][0]:21s} ({color(False,MEM)}{int(gpus[0][1])//1024} GB{color(False,TXT)})  '+''.join([f'{color(l[-1],TXT)}[{color(l[-1],CPU)}{l[2]:>4}%{color(l[-1],MEM)}{l[3]:>4}%{color(l[-1],TXT)}]{color(False,TXT)}' for l in gpus]))
 EOF
 )
 
